@@ -143,6 +143,14 @@ public:
 	{
 		pBody->ApplyAngularImpulse( impulse,true );
 	}
+	void ScheduleDestruction()
+	{
+		destroy = true;
+	}
+	bool ToBeDestroyed()
+	{
+		return destroy;
+	}
 	float GetAngle() const
 	{
 		return pBody->GetAngle();
@@ -189,4 +197,5 @@ private:
 	static IndexedTriangleList<Vec2> model;
 	BodyPtr pBody;
 	Properties p;
+	bool destroy = false;
 };

@@ -57,6 +57,12 @@ Game::Game( MainWindow& wnd )
 				auto& tid0 = typeid(boxPtrs[0]->GetColorTrait());
 				auto& tid1 = typeid(boxPtrs[1]->GetColorTrait());
 
+				if (tid0 == tid1)
+				{
+					boxPtrs[0]->ScheduleDestruction();
+					boxPtrs[1]->ScheduleDestruction();
+				}
+
 				std::stringstream msg;
 				msg << "Collision between " << tid0.name() << " and " << tid1.name() << std::endl;
 				OutputDebugStringA( msg.str().c_str() );
@@ -77,15 +83,26 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
-	const float dt = ft.Mark();
-	time += dt;
-	world.Step( dt,8,3 );
 	if (wnd.kbd.KeyIsPressed(VK_SPACE) && time > timer)
 	{
 		time = 0.0f;
 		for (int i = 0, size = boxPtrs.size(); i < size; i++)
 		{
 			boxPtrs[i] = SplitBox(std::move(boxPtrs[i]));
+		}
+	}
+
+	const float dt = ft.Mark();
+	time += dt;
+	world.Step( dt,8,3 );
+
+	for (int i = 0; i < boxPtrs.size(); i++)
+	{
+		size_t left = boxPtrs.size();
+		if (boxPtrs[i]->ToBeDestroyed())
+		{
+			boxPtrs[i] = std::move(boxPtrs[boxPtrs.size() - 1]);
+			boxPtrs.erase(boxPtrs.end() - 1);
 		}
 	}
 }
