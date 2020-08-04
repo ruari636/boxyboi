@@ -22,13 +22,54 @@ public:
 		virtual Color GetColor() const = 0;
 		virtual std::unique_ptr<ColorTrait> Clone() const = 0;
 	};
+	struct Properties
+	{
+		Properties() = delete;
+		Properties(Properties& other)
+		{
+			*this = other;
+		}
+		Properties(Vec2 pos, Vec2 vel, std::unique_ptr<ColorTrait> c, float angle, float angVel, float size)
+			:
+			position(pos),
+			velocity(vel),
+			trait(std::move(c)),
+			angle(angle),
+			angularVel(angVel),
+			size(size)
+		{
+		}
+		void Update(const BodyPtr& pbody)
+		{
+			position = (Vec2)pbody->GetPosition();
+			velocity = (Vec2)pbody->GetLinearVelocity();
+			angularVel = pbody->GetAngularVelocity();
+			angle = pbody->GetAngle();
+		}
+		Properties& operator=(Properties& other)
+		{
+			trait = other.trait->Clone();
+			position = other.position;
+			velocity = other.velocity;
+			angle = other.angle;
+			angularVel = other.angularVel;
+			size = other.size;
+			return *this;
+		}
+		Vec2 position;
+		Vec2 velocity;
+		std::unique_ptr<ColorTrait> trait;
+		float angle;
+		float angularVel;
+		float size;
+	};
 public:
 	static std::unique_ptr<Box> Box::Spawn( float size,const Boundaries& bounds,b2World& world,std::mt19937& rng );
 	Box( std::unique_ptr<ColorTrait> pColorTrait, b2World& world,const Vec2& pos,
 		float size = 1.0f,float angle = 0.0f,Vec2 linVel = {0.0f,0.0f},float angVel = 0.0f )
 		:
-		pColorTrait( std::move( pColorTrait ) ),
-		size( size )
+		p(pos, linVel, std::move(pColorTrait), angle, angVel, size),
+		world(world)
 	{
 		Init();
 		{
@@ -52,6 +93,41 @@ public:
 		}
 		pBody->SetUserData( this );
 	}
+	Box(Properties& p_in, b2World& world)
+		:
+		p(p_in),
+		world(world)
+	{
+		*this = Box(p.trait->Clone(), world, p.position, p.size,
+			p.angle, p.velocity, p.angularVel);
+	}
+	Box& operator=(Box& other)
+	{
+		p = other.p;
+		Init();
+		{
+			b2BodyDef bodyDef;
+			bodyDef.type = b2_dynamicBody;
+			bodyDef.position = b2Vec2(other.p.position);
+			bodyDef.linearVelocity = b2Vec2(other.p.velocity);
+			bodyDef.angularVelocity = other.p.angularVel;
+			bodyDef.angle = other.p.angle;
+			pBody = BodyPtr::Make(world, bodyDef);
+		}
+		{
+			b2PolygonShape dynamicBox;
+			dynamicBox.SetAsBox(other.GetSize(), other.GetSize());
+			b2FixtureDef fixtureDef;
+			fixtureDef.shape = &dynamicBox;
+			fixtureDef.density = 1.0f;
+			fixtureDef.friction = 0.0f;
+			fixtureDef.restitution = 1.0f;
+			pBody->CreateFixture(&fixtureDef);
+		}
+		pBody->SetUserData(this);
+		return *this;
+	}
+	~Box() = default;
 	void Draw( Pipeline<SolidEffect>& pepe ) const
 	{
 		pepe.effect.vs.BindTranslation( GetPosition() );
@@ -85,11 +161,19 @@ public:
 	}
 	float GetSize() const
 	{
-		return size;
+		return p.size;
+	}
+	Properties GetProperties()
+	{
+		return Properties(p);
+	}
+	void UpdateProperties()
+	{
+		p.Update(pBody);
 	}
 	const ColorTrait& GetColorTrait() const
 	{
-		return *pColorTrait;
+		return *(p.trait);
 	}
 private:
 	static void Init()
@@ -101,8 +185,8 @@ private:
 		}
 	}
 private:
+	b2World& world;
 	static IndexedTriangleList<Vec2> model;
-	float size;
 	BodyPtr pBody;
-	std::unique_ptr<ColorTrait> pColorTrait;
+	Properties p;
 };

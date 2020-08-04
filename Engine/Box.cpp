@@ -79,7 +79,7 @@ std::unique_ptr<Box> Box::Spawn( float size,const Boundaries& bounds,b2World& wo
 
 	const auto linVel = (Vec2{ 1.0f,0.0f } * Mat2::Rotation( angle_dist( rng ) )) * power_dist( rng );
 	const auto pos = Vec2{ pos_dist( rng ),pos_dist( rng ) };
-	const auto ang = angle_dist( rng );
+	const auto ang = angle_dist(rng);
 	const auto angVel = angle_dist( rng ) * 1.5f;
 
 	std::unique_ptr<ColorTrait> pColorTrait;

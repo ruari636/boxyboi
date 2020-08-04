@@ -18,6 +18,7 @@ public:
 		assert( vertices.size() > 2 );
 		assert( indices.size() % 3 == 0 );
 	}
+	IndexedTriangleList& operator=(IndexedTriangleList& other) = default;
 	std::vector<T> vertices;
 	std::vector<size_t> indices;
 };

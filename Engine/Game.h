@@ -30,6 +30,7 @@
 #include "Pipeline.h"
 #include "SolidEffect.h"
 #include <random>
+#include <cmath>
 
 class Game
 {
@@ -41,6 +42,7 @@ public:
 private:
 	void ComposeFrame();
 	void UpdateModel();
+	std::unique_ptr<Box> SplitBox(std::unique_ptr<Box> target);
 	/********************************/
 	/*  User Functions              */
 	/********************************/
@@ -50,8 +52,10 @@ private:
 	/********************************/
 	/*  User Variables              */
 	static constexpr float boundarySize = 10.0f;
-	static constexpr float boxSize = 1.0f;
-	static constexpr int nBoxes = 6;
+	static constexpr float boxSize = 2.0f;
+	static constexpr int nBoxes = 1;
+	float timer = 1.0f;
+	float time = 0.0f;
 	std::mt19937 rng = std::mt19937( std::random_device{}() );
 	FrameTimer ft;
 	Pipeline<SolidEffect> pepe;

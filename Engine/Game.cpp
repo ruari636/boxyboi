@@ -35,7 +35,7 @@ Game::Game( MainWindow& wnd )
 	pepe( gfx )
 {
 	pepe.effect.vs.cam.SetPos( { 0.0,0.0f } );
-	pepe.effect.vs.cam.SetZoom( 1.0f / boundarySize );
+	pepe.effect.vs.cam.SetZoom( 0.75f / boundarySize );
 
 	std::generate_n( std::back_inserter( boxPtrs ),nBoxes,[this]() {
 		return Box::Spawn( boxSize,bounds,world,rng );
@@ -78,7 +78,32 @@ void Game::Go()
 void Game::UpdateModel()
 {
 	const float dt = ft.Mark();
+	time += dt;
 	world.Step( dt,8,3 );
+	if (wnd.kbd.KeyIsPressed(VK_SPACE) && time > timer)
+	{
+		time = 0.0f;
+		for (int i = 0, size = boxPtrs.size(); i < size; i++)
+		{
+			boxPtrs[i] = SplitBox(std::move(boxPtrs[i]));
+		}
+	}
+}
+
+std::unique_ptr<Box> Game::SplitBox(std::unique_ptr<Box> target)
+{
+	target->UpdateProperties();
+	Box::Properties newProperties = target->GetProperties();
+	float size = newProperties.size /= 2.0f;
+	newProperties.position.x -= size / 2.0f;
+	target = std::make_unique<Box>(newProperties, world);
+	newProperties.position.x += size;
+	boxPtrs.push_back(std::make_unique<Box>(newProperties, world));
+	newProperties.position.y += size;
+	boxPtrs.push_back(std::make_unique<Box>(newProperties, world));
+	newProperties.position.x -= size;
+	boxPtrs.push_back(std::make_unique<Box>(newProperties, world));
+	return target;
 }
 
 void Game::ComposeFrame()
