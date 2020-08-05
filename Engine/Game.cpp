@@ -35,7 +35,7 @@ Game::Game( MainWindow& wnd )
 	pepe( gfx )
 {
 	pepe.effect.vs.cam.SetPos( { 0.0,0.0f } );
-	pepe.effect.vs.cam.SetZoom( 0.75f / boundarySize );
+	pepe.effect.vs.cam.SetZoom( 1.0f / boundarySize );
 
 	std::generate_n( std::back_inserter( boxPtrs ),nBoxes,[this]() {
 		return Box::Spawn( boxSize,bounds,world,rng );
@@ -57,10 +57,21 @@ Game::Game( MainWindow& wnd )
 				auto& tid0 = typeid(boxPtrs[0]->GetColorTrait());
 				auto& tid1 = typeid(boxPtrs[1]->GetColorTrait());
 
-				if (tid0 == tid1)
+				if (tid0 != tid1)
 				{
 					boxPtrs[0]->ScheduleDestruction();
 					boxPtrs[1]->ScheduleDestruction();
+				}
+				else
+				{
+					if (boxPtrs[0]->GetSize() > boxSize / (float)(splitsPerEdge * maxSplits))
+					{
+						boxPtrs[0]->ScheduleSplit();
+					}
+					else if (boxPtrs[1]->GetSize() > boxSize / (float)(splitsPerEdge * maxSplits))
+					{
+						boxPtrs[1]->ScheduleSplit();
+					}
 				}
 
 				std::stringstream msg;
@@ -83,12 +94,19 @@ void Game::Go()
 
 void Game::UpdateModel()
 {
-	if (wnd.kbd.KeyIsPressed(VK_SPACE) && time > timer)
+   	if (wnd.kbd.KeyIsPressed(VK_SPACE) && time > timer)
 	{
 		time = 0.0f;
 		for (int i = 0, size = boxPtrs.size(); i < size; i++)
 		{
-			boxPtrs[i] = SplitBox(std::move(boxPtrs[i]));
+			boxPtrs[i] = SplitBox(std::move(boxPtrs[i]), splitsPerEdge);
+		}
+	}
+	for (int i = 0, size = boxPtrs.size(); i < size; i++)
+	{
+		if (boxPtrs[i]->Split())
+		{
+			boxPtrs[i] = SplitBox(std::move(boxPtrs[i]), splitsPerEdge);
 		}
 	}
 
@@ -96,30 +114,38 @@ void Game::UpdateModel()
 	time += dt;
 	world.Step( dt,8,3 );
 
-	for (int i = 0; i < boxPtrs.size(); i++)
+	for (size_t i = 0; i < boxPtrs.size(); i++)
 	{
 		size_t left = boxPtrs.size();
 		if (boxPtrs[i]->ToBeDestroyed())
 		{
 			boxPtrs[i] = std::move(boxPtrs[boxPtrs.size() - 1]);
 			boxPtrs.erase(boxPtrs.end() - 1);
+			i--;
 		}
 	}
 }
 
-std::unique_ptr<Box> Game::SplitBox(std::unique_ptr<Box> target)
+std::unique_ptr<Box> Game::SplitBox(std::unique_ptr<Box> target, int EdgeDiv)
 {
-	target->UpdateProperties();
 	Box::Properties newProperties = target->GetProperties();
-	float size = newProperties.size /= 2.0f;
-	newProperties.position.x -= size / 2.0f;
-	target = std::make_unique<Box>(newProperties, world);
-	newProperties.position.x += size;
-	boxPtrs.push_back(std::make_unique<Box>(newProperties, world));
-	newProperties.position.y += size;
-	boxPtrs.push_back(std::make_unique<Box>(newProperties, world));
-	newProperties.position.x -= size;
-	boxPtrs.push_back(std::make_unique<Box>(newProperties, world));
+	float size = newProperties.size /= float(EdgeDiv);
+	newProperties.position.x -= size * ((float)(EdgeDiv - 1) / 4);
+	Vec2 start = newProperties.position;
+	std::vector<std::unique_ptr<Box>> split; split.resize(EdgeDiv * EdgeDiv);
+	for (int i = 0; i < EdgeDiv * EdgeDiv; newProperties.position.y += size)
+	{
+		int x = 0;
+		for (newProperties.position.x = start.x; x < EdgeDiv;
+			newProperties.position.x += size, x++)
+		{
+			split[i + x] = std::make_unique<Box>(newProperties, world);
+		}
+		i += x;
+	}
+	target = std::move(split[0]);
+	boxPtrs.insert(boxPtrs.end(), std::make_move_iterator(split.begin() + 1), 
+		std::make_move_iterator(split.end()));
 	return target;
 }
 

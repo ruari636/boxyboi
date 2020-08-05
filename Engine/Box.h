@@ -143,10 +143,9 @@ public:
 	{
 		pBody->ApplyAngularImpulse( impulse,true );
 	}
-	void ScheduleDestruction()
-	{
-		destroy = true;
-	}
+	void ScheduleDestruction() { destroy = true; }
+	void ScheduleSplit() { split = true; }
+	bool Split() { bool ret = split; split = false; return ret; }
 	bool ToBeDestroyed()
 	{
 		return destroy;
@@ -173,6 +172,7 @@ public:
 	}
 	Properties GetProperties()
 	{
+		UpdateProperties();
 		return Properties(p);
 	}
 	void UpdateProperties()
@@ -198,4 +198,5 @@ private:
 	BodyPtr pBody;
 	Properties p;
 	bool destroy = false;
+	bool split = false;
 };

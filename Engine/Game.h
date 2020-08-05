@@ -42,8 +42,7 @@ public:
 private:
 	void ComposeFrame();
 	void UpdateModel();
-	std::unique_ptr<Box> SplitBox(std::unique_ptr<Box> target);
-	std::unique_ptr<Box> DestroyScheduled(std::unique_ptr<Box> target);
+	std::unique_ptr<Box> SplitBox(std::unique_ptr<Box> target, int EdgeDiv = 2);
 	/********************************/
 	/*  User Functions              */
 	/********************************/
@@ -55,6 +54,8 @@ private:
 	static constexpr float boundarySize = 10.0f;
 	static constexpr float boxSize = 1.0f;
 	static constexpr int nBoxes = 9;
+	static constexpr int splitsPerEdge = 3;
+	static constexpr int maxSplits = 2;
 	float timer = 1.0f;
 	float time = 0.0f;
 	std::mt19937 rng = std::mt19937( std::random_device{}() );
