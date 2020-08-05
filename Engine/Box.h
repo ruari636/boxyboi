@@ -11,58 +11,11 @@
 #include "BodyPtr.h"
 #include "Boundaries.h"
 #include <random>
+#include "ColourTrait.h"
+#include "Properties.h"
 
 class Box
 {
-public:
-	class ColorTrait
-	{
-	public:
-		virtual ~ColorTrait() = default;
-		virtual Color GetColor() const = 0;
-		virtual std::unique_ptr<ColorTrait> Clone() const = 0;
-	};
-	struct Properties
-	{
-		Properties() = delete;
-		Properties(Properties& other)
-		{
-			*this = other;
-		}
-		Properties(Vec2 pos, Vec2 vel, std::unique_ptr<ColorTrait> c, float angle, float angVel, float size)
-			:
-			position(pos),
-			velocity(vel),
-			trait(std::move(c)),
-			angle(angle),
-			angularVel(angVel),
-			size(size)
-		{
-		}
-		void Update(const BodyPtr& pbody)
-		{
-			position = (Vec2)pbody->GetPosition();
-			velocity = (Vec2)pbody->GetLinearVelocity();
-			angularVel = pbody->GetAngularVelocity();
-			angle = pbody->GetAngle();
-		}
-		Properties& operator=(Properties& other)
-		{
-			trait = other.trait->Clone();
-			position = other.position;
-			velocity = other.velocity;
-			angle = other.angle;
-			angularVel = other.angularVel;
-			size = other.size;
-			return *this;
-		}
-		Vec2 position;
-		Vec2 velocity;
-		std::unique_ptr<ColorTrait> trait;
-		float angle;
-		float angularVel;
-		float size;
-	};
 public:
 	static std::unique_ptr<Box> Box::Spawn( float size,const Boundaries& bounds,b2World& world,std::mt19937& rng );
 	Box( std::unique_ptr<ColorTrait> pColorTrait, b2World& world,const Vec2& pos,

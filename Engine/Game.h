@@ -29,15 +29,16 @@
 #include "Boundaries.h"
 #include "Pipeline.h"
 #include "SolidEffect.h"
+#include "ColourTrait.h"
 #include <random>
 #include <cmath>
 
 class Game
 {
 public:
-	Game( class MainWindow& wnd );
-	Game( const Game& ) = delete;
-	Game& operator=( const Game& ) = delete;
+	Game(class MainWindow& wnd);
+	Game(const Game&) = delete;
+	Game& operator=(const Game&) = delete;
 	void Go();
 private:
 	void ComposeFrame();
@@ -58,11 +59,11 @@ private:
 	static constexpr int maxSplits = 2;
 	float timer = 1.0f;
 	float time = 0.0f;
-	std::mt19937 rng = std::mt19937( std::random_device{}() );
+	std::mt19937 rng = std::mt19937(std::random_device{}());
 	FrameTimer ft;
 	Pipeline<SolidEffect> pepe;
 	b2World world;
-	Boundaries bounds = Boundaries( world,boundarySize );
+	Boundaries bounds = Boundaries(world, boundarySize);
 	std::vector<std::unique_ptr<Box>> boxPtrs;
 	/********************************/
 };

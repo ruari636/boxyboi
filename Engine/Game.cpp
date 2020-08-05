@@ -57,7 +57,8 @@ Game::Game( MainWindow& wnd )
 				auto& tid0 = typeid(boxPtrs[0]->GetColorTrait());
 				auto& tid1 = typeid(boxPtrs[1]->GetColorTrait());
 
-				if (tid0 != tid1)
+				
+				/*if (tid0 != tid1)
 				{
 					boxPtrs[0]->ScheduleDestruction();
 					boxPtrs[1]->ScheduleDestruction();
@@ -72,7 +73,7 @@ Game::Game( MainWindow& wnd )
 					{
 						boxPtrs[1]->ScheduleSplit();
 					}
-				}
+				}*/
 
 				std::stringstream msg;
 				msg << "Collision between " << tid0.name() << " and " << tid1.name() << std::endl;
@@ -128,7 +129,7 @@ void Game::UpdateModel()
 
 std::unique_ptr<Box> Game::SplitBox(std::unique_ptr<Box> target, int EdgeDiv)
 {
-	Box::Properties newProperties = target->GetProperties();
+	Properties newProperties = target->GetProperties();
 	float size = newProperties.size /= float(EdgeDiv);
 	newProperties.position.x -= size * ((float)(EdgeDiv - 1) / 4);
 	Vec2 start = newProperties.position;
