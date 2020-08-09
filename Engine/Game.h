@@ -30,6 +30,7 @@
 #include "Pipeline.h"
 #include "SolidEffect.h"
 #include "ColourTrait.h"
+#include "ContactListener.h"
 #include <random>
 #include <cmath>
 
@@ -52,11 +53,6 @@ private:
 	Graphics gfx;
 	/********************************/
 	/*  User Variables              */
-	static constexpr float boundarySize = 10.0f;
-	static constexpr float boxSize = 1.0f;
-	static constexpr int nBoxes = 9;
-	static constexpr int splitsPerEdge = 3;
-	static constexpr int maxSplits = 2;
 	float timer = 1.0f;
 	float time = 0.0f;
 	std::mt19937 rng = std::mt19937(std::random_device{}());
@@ -65,5 +61,12 @@ private:
 	b2World world;
 	Boundaries bounds = Boundaries(world, boundarySize);
 	std::vector<std::unique_ptr<Box>> boxPtrs;
+public:
+	static constexpr float boundarySize = 10.0f;
+	static constexpr float boxSize = 1.0f;
+	static constexpr int nBoxes = 18;
+	static constexpr int splitsPerEdge = 2;
+	static constexpr int maxSplits = 3;
+	static constexpr float minSize = boxSize / (float)(splitsPerEdge * maxSplits);
 	/********************************/
 };

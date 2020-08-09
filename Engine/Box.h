@@ -132,6 +132,7 @@ public:
 	{
 		p.Update(pBody);
 	}
+	void SetColour(std::unique_ptr<ColorTrait> c) { p.trait = std::move(c); }
 	const ColorTrait& GetColorTrait() const
 	{
 		return *(p.trait);

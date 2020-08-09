@@ -35,53 +35,32 @@ Game::Game( MainWindow& wnd )
 	pepe( gfx )
 {
 	pepe.effect.vs.cam.SetPos( { 0.0,0.0f } );
-	pepe.effect.vs.cam.SetZoom( 1.0f / boundarySize );
+	pepe.effect.vs.cam.SetZoom( 0.85f / boundarySize );
 
 	std::generate_n( std::back_inserter( boxPtrs ),nBoxes,[this]() {
 		return Box::Spawn( boxSize,bounds,world,rng );
 	} );
 
-	class Listener : public b2ContactListener
-	{
-	public:
-		void BeginContact( b2Contact* contact ) override
+	static BoxContactResolver mrLister;
+	mrLister.AddAction<WhiteTrait, BlueTrait>([](Box* white, Box* blue)
 		{
-			const b2Body* bodyPtrs[] = { contact->GetFixtureA()->GetBody(),contact->GetFixtureB()->GetBody() };
-			if( bodyPtrs[0]->GetType() == b2BodyType::b2_dynamicBody &&
-				bodyPtrs[1]->GetType() == b2BodyType::b2_dynamicBody )
+			if (white->GetSize() > blue->GetSize())
 			{
-				Box* boxPtrs[] = { 
-					reinterpret_cast<Box*>(bodyPtrs[0]->GetUserData()),
-					reinterpret_cast<Box*>(bodyPtrs[1]->GetUserData())
-				};
-				auto& tid0 = typeid(boxPtrs[0]->GetColorTrait());
-				auto& tid1 = typeid(boxPtrs[1]->GetColorTrait());
-
-				
-				/*if (tid0 != tid1)
-				{
-					boxPtrs[0]->ScheduleDestruction();
-					boxPtrs[1]->ScheduleDestruction();
-				}
-				else
-				{
-					if (boxPtrs[0]->GetSize() > boxSize / (float)(splitsPerEdge * maxSplits))
-					{
-						boxPtrs[0]->ScheduleSplit();
-					}
-					else if (boxPtrs[1]->GetSize() > boxSize / (float)(splitsPerEdge * maxSplits))
-					{
-						boxPtrs[1]->ScheduleSplit();
-					}
-				}*/
-
-				std::stringstream msg;
-				msg << "Collision between " << tid0.name() << " and " << tid1.name() << std::endl;
-				OutputDebugStringA( msg.str().c_str() );
+				white->ScheduleSplit();
 			}
-		}
-	};
-	static Listener mrLister;
+			else if (blue->GetSize() > Game::minSize)
+			{
+				blue->ScheduleSplit();
+			}
+		});
+	mrLister.AddAction<WhiteTrait, RedTrait>([](Box* white, Box* red)
+		{
+			red->ScheduleDestruction();
+		});
+	mrLister.AddAction<YellowTrait, BlueTrait>([](Box* yellow, Box* blue)
+		{
+			yellow->SetColour(blue->GetColorTrait().Clone());
+		});
 	world.SetContactListener( &mrLister );
 }
 

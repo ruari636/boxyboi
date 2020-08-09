@@ -145,6 +145,7 @@
     <ClInclude Include="Colors.h" />
     <ClInclude Include="Box.h" />
     <ClInclude Include="ColourTrait.h" />
+    <ClInclude Include="ContactListener.h" />
     <ClInclude Include="DefaultGeometryShader.h" />
     <ClInclude Include="DXErr.h" />
     <ClInclude Include="FrameTimer.h" />
